@@ -72,7 +72,7 @@ func main() {
     Stats := &stats.Stats{Window: uint8(viper.GetInt64("limits.window")),Redis:redisClient,Log:log, RedisPrefix: viper.GetString("redis.prefix"), HistoryWindow: 2000}
 
     for run == 1 {
-        lastBlock = currentBlock - viper.GetInt64("limits.window") + 1;
+        lastBlock = currentBlock - viper.GetInt64("limits.window") + 1
         log.Debugf("Starting at block %d up to block %d", lastBlock, currentBlock)
         initialBlock, _ := EthGetBlockByNumber(strconv.FormatInt(lastBlock-1,10),true)
         initialBlockTime, _ := ParseQuantity(initialBlock.Timestamp)
