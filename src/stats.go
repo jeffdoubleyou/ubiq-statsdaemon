@@ -18,7 +18,7 @@ type Stats struct {
     Redis *redis.Client
     Log *zap.SugaredLogger
     KnownMiners map[string]string
-    Miners map[string]uint8
+    Miners map[string]int
 }
 
 type Miner struct {
@@ -31,7 +31,7 @@ func (s *Stats) Populate(blockNum int64, timeStamp uint32, difficulty int64, unc
     res = false
 
     if len(s.Miners) == 0 {
-        s.Miners = make(map[string]uint8)
+        s.Miners = make(map[string]int)
     }
     if len(s.KnownMiners) == 0 {
         s.KnownMiners, _ = s.Redis.HGetAll(s.RedisPrefix+"known_miners").Result()
@@ -83,13 +83,16 @@ func (s *Stats) Populate(blockNum int64, timeStamp uint32, difficulty int64, unc
 
         s.Redis.Del(s.RedisPrefix+"top_miners")
 
-        for name, blocks := range s.Miners {
+        sortedMiners := sortMapByValue(s.Miners)
+        for m := range sortedMiners {
+            name := sortedMiners[m].Key
+            blocks := sortedMiners[m].Value
             minerData := &Miner{Name: name, Count: uint8(blocks), Percent: float32((float32(blocks)/float32(s.StatsCount))*100)}
             minerDataJSON, _ := json.Marshal(minerData)
             s.Redis.LPush(s.RedisPrefix+"top_miners", minerDataJSON)
         }
 
-        s.Miners = make(map[string]uint8)
+        s.Miners = make(map[string]int)
         s.StatsCount = 0
         s.BlockTime = 0
         s.Difficulty = 0
@@ -97,30 +100,3 @@ func (s *Stats) Populate(blockNum int64, timeStamp uint32, difficulty int64, unc
 	}
     return res
 }
-
-/*
-my $pct = $miners{$miner} / $stats_reset * 100;
-            $redis->lpush('explorertop_miners', $json->encode({ name => $miner, count => $miners{$miner}, percent => $pct}));
-
-        $redis->set('explorercurrent_unclerate' => $current_uncle_rate);
-        $redis->set('explorercurrent_difficulty' => $current_difficulty);
-        $redis->set('explorercurrent_blocktime' => $current_block_time);
-        $redis->set('explorercurrent_hashrate' => $current_hash_rate);
-
-        $redis->lpush('explorerhistory_difficulty",g $current_difficulty);
-        $redis->lpush('explorerhistory_blocktime",g $current_block_time);
-        $redis->lpush('explorerhistory_hashrate",g $current_hash_rate);
-
-    my $block_time = $block->{'timestamp'}-$last_block_time;
-    $last_block_time = $block->{'timestamp'};
-
-STUFF
-
-    $block_time_sum += $block_time;
-    $difficulty_sum += $block->{'difficulty'};
-    my $miner = $known_miners{'_miner_'.$block->{'miner'}} || 'Unknown';
-    $miners{$miner}||=0;
-    $miners{$miner}++;
-    $uncle_count += scalar(@{$block->{'uncles'}});
-    $stats_count++;
-*/
