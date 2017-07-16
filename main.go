@@ -91,11 +91,11 @@ func main() {
             Stats.Populate(lastBlock,uint32(timeStamp),difficulty,uint8(len(block.Uncles)),block.Miner)
             lastBlock++
         }
-        log.Infof("All cought up, waiting for a new block");
-        for currentBlock == lastBlock {
+        log.Debugf("All cought up, waiting for a new block - current %d last %d", currentBlock, lastBlock);
+        for currentBlock < lastBlock {
             time.Sleep(5000*time.Millisecond)
             currentBlock = getCurrentBlockNumber()
-            log.Infof("Current Block: %d Last Block: %d", currentBlock, lastBlock)
+            log.Debugf("Current Block: %d Last Block: %d", currentBlock, lastBlock)
         }
     }
 }
