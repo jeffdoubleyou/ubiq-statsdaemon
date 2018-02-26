@@ -1,4 +1,5 @@
 # ubiq-statsdaemon
 
-DEFUNCT - Just use jeffdoubleyou/ubiq-explorer
+## DEFUNCT - Just use jeffdoubleyou/ubiq-explorer
+
 Stats daemon for www.ubiq.cc
